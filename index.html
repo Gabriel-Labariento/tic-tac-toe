@@ -3,11 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
     <link rel="stylesheet" href="styles.css">
     <title>Tic Tac Toe</title>
 </head>
 <body>
+    <div class="start-container">
+        <div class="start-logo-container">
+            <img src="./assets/TicTacToe_Logo.png" alt="Tic Tac Toe Logo">
+        </div>
+        <div class="start-button-container">
+            <button class="start-button" type="button">START</button>            
+        </div>
+        <div class="player-name-form-container hidden">
+            <form class="player-name-form">
+                <div class="form-row">
+                    <input class="player-name-input" type="text" name="player-name" id="player-name" minlength="1" maxlength="9">
+                    <button class="player-name-button" type="submit">></button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="game-display-container hidden">
+        <div class="player-display-container">
+            <h1 class="player-name">Player</h1>
+            <h1 class="player-score">0</h1>
+        </div>
+        <div class="main-display-container">
+            <div class="round-display-container">
+                <h1 class="round-number">Round 0</h1>
+            </div>
+            <div class="board-display-container">
+                <button type="button" class="boardTile" data-tile-number="0"></button>
+                <button type="button" class="boardTile" data-tile-number="1"></button>
+                <button type="button" class="boardTile" data-tile-number="2"></button>
+                <button type="button" class="boardTile" data-tile-number="3"></button>
+                <button type="button" class="boardTile" data-tile-number="4"></button>
+                <button type="button" class="boardTile" data-tile-number="5"></button>
+                <button type="button" class="boardTile" data-tile-number="6"></button>
+                <button type="button" class="boardTile" data-tile-number="7"></button>
+                <button type="button" class="boardTile" data-tile-number="8"></button>
+            </div>
     
+        </div>
+        <div class="computer-display-container">
+            <h1 class="computer-name">Computer</h1>
+            <h1 class="computer-score">0</h1>
+        </div>
+    </div>
+
 </body>
 </html>

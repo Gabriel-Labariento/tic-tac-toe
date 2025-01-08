@@ -1,3 +1,33 @@
+const startGame = () => {
+    let playerName;
+    let startButton = document.querySelector(".start-button");
+    let playerNameFormContainer = document.querySelector(".player-name-form-container")
+    // Handles clicking the start button
+    startButton.addEventListener("click", () => {
+        startButton.classList.add("hidden");
+        playerNameFormContainer.classList.remove("hidden")
+    })
+
+    let playerNameForm = document.querySelector(".player-name-form");
+    playerNameForm.addEventListener("submit", (event) => {
+        event.preventDefault();     
+        let playerNameInput = document.querySelector(".player-name-input")
+        playerName = playerNameInput.value
+        if (playerName && playerName.length <= 9 && playerName.length >= 1) {
+            let body = document.querySelector("body") 
+            body.removeChild(body.firstElementChild)
+            document.querySelector(".game-display-container").classList.remove("hidden")
+        } else {
+            playerNameInput.setAttribute("placeholder", " enter name")
+        }
+    })
+    
+    const getPlayerName = () => playerName;
+    
+    return {getPlayerName}
+};
+
+
 const cell = () => {
     let value = null;
 
@@ -88,8 +118,12 @@ const gameBoard = (function () {
 })();
 
 const gameMaster = (function(){
-    const playerOne = playerMaker("playerOne", "X");
-    const playerTwo = playerMaker("playerTwo", "O");
+
+    const playerName = startGame().getPlayerName();
+
+
+    const playerOne = playerMaker(playerName, "X");
+    const playerTwo = playerMaker("Computer", "O");
     const maxScore = 5;
 
     const gameHasWinner = () => {
@@ -161,4 +195,5 @@ const gameMaster = (function(){
     return {playGame}
 })();
 
-gameMaster.playGame();
+
+
