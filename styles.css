@@ -211,6 +211,12 @@ body {
     background-color: var(--pennBlue);
     border: 2px solid white;
     border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 4rem;
+    color: white;
+    font-family: poppinsbold;
 }
 
 .boardTile:hover{

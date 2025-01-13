@@ -2,7 +2,7 @@ const displayController = (function() {
     let playerName;
     let startButton = document.querySelector(".start-button");
     let playerNameFormContainer = document.querySelector(".player-name-form-container")
-    // Handles clicking the start button
+    
     startButton.addEventListener("click", () => {
         startButton.classList.add("hidden");
         playerNameFormContainer.classList.remove("hidden")
@@ -15,9 +15,11 @@ const displayController = (function() {
         playerName = playerNameInput.value
         if (playerName && playerName.length <= 9 && playerName.length >= 1) {
             let body = document.querySelector("body") 
-            body.removeChild(body.firstElementChild)
-            document.querySelector(".game-display-container").classList.remove("hidden")
-            gameMaster(playerName);
+            gameMaster(playerName).playGame();
+            setTimeout(() => {
+                body.removeChild(body.firstElementChild)
+                document.querySelector(".game-display-container").classList.remove("hidden")
+            }, 1000);
         } else {
             playerNameInput.setAttribute("placeholder", " enter name")
         }
@@ -59,10 +61,27 @@ const playerMaker = (name, token) => {
         let availableSquares = gameBoard.getAvailableSquares();
         return availableSquares[Math.floor(Math.random() * availableSquares.length)]; 
     }
+
     const getHumanChoice = () => {
-        let availableSquares = gameBoard.getAvailableSquares();
-        return Math.floor(Math.random() * availableSquares.length);
-    }
+        return new Promise((resolve) => {
+            const tiles = Array.from(document.querySelectorAll(".boardTile"));
+            
+            const handleClick = (event) => {
+                const choice = parseInt(event.target.dataset.tileNumber);
+                const availableSquares = gameBoard.getAvailableSquares();
+                
+                if (availableSquares.includes(choice)) {
+                    // Remove event listeners from all tiles once a valid choice is made
+                    tiles.forEach(tile => tile.removeEventListener("click", handleClick));
+                    resolve(choice);
+                }
+            };
+
+            // Add click event listener to each tile
+            tiles.forEach(tile => tile.addEventListener("click", handleClick));
+        });
+    };
+
 
 
     return {makeMove, addPoints, getScore, getName, getToken, getComputerChoice, getHumanChoice, getTakenSquares, resetTakenSquares}
@@ -92,6 +111,10 @@ const gameBoard = (function () {
     const resetBoard = () => {
         board.map(row => row.map(cell => cell.setValue(null))
         )
+        const tiles = Array.from(document.querySelectorAll(".boardTile"));
+        tiles.forEach(tile => tile.textContent = "")
+        
+
     }
 
     const placeToken = (position, token) => {
@@ -114,17 +137,28 @@ const gameBoard = (function () {
         return availableSquares;
     }
 
-    return{getBoard, printBoard, resetBoard, placeToken, getAvailableSquares};
+    const addMark = (position, player) => {
+        let token = player.getToken();
+        if (position < 0 || position > 8) return false;
+        
+        let tile = document.querySelector(`#tile-${position}`);
+        tile.textContent = `${token}`
+
+
+    }
+
+    return{getBoard, printBoard, resetBoard, placeToken, getAvailableSquares, addMark};
 })();
 
 const gameMaster = function(playerName){
-
+    const TIMEOUT = 1000;
     const maxScore = 5;
     const playerOne = playerMaker(playerName, "X");
     const playerTwo = playerMaker("Computer", "O");
+    let numOfRounds = 0;
 
     const gameHasWinner = () => {
-        return (playerOne.getScore() >= maxScore || playerTwo.getScore() >= maxScore)  
+        return (playerOne.getScore() >= maxScore ||playerTwo.getScore() >= maxScore)  
     }
 
     const roundHasWinner = () => {
@@ -145,20 +179,29 @@ const gameMaster = function(playerName){
         
     }
 
-    const playRound = () => {
-        gameBoard.resetBoard();
+    const playRound = async () => {
+        numOfRounds++;
+        setTimeout(() => {
+            gameBoard.resetBoard()
+            document.querySelector(".round-number").textContent = `Round ${numOfRounds}`
+        }, TIMEOUT)
         playerOne.resetTakenSquares();
         playerTwo.resetTakenSquares();
 
         let turnCounter = 1;
-        while (roundHasWinner() === -1){
-            if (turnCounter % 2 == 0){
-                playerTwo.makeMove(playerTwo.getComputerChoice());
+        while (roundHasWinner() === -1) {
+            if (turnCounter % 2 == 0) {
+                let computerChoice = playerTwo.getComputerChoice()
+                playerTwo.makeMove(computerChoice);
+                setTimeout(() => gameBoard.addMark(computerChoice, playerTwo), TIMEOUT / 2)                
             } else {
-                playerOne.makeMove(playerOne.getComputerChoice());
+                const humanChoice = await playerOne.getHumanChoice();
+                playerOne.makeMove(humanChoice);
+                gameBoard.addMark(humanChoice, playerOne)
             }
             turnCounter++;
-            availableSquares = gameBoard.getAvailableSquares();
+            
+            let availableSquares = gameBoard.getAvailableSquares();
             if (availableSquares.length === 0) {
                 console.log("Tie round");
                 return;
@@ -166,25 +209,35 @@ const gameMaster = function(playerName){
             gameBoard.printBoard();
         }
 
-        if (roundHasWinner !== -1){
-            (roundHasWinner() === 0 ) ? playerOne.addPoints() : playerTwo.addPoints();
-        }        
-    }
+        if (roundHasWinner() !== -1) {
+            (roundHasWinner() === 0) ? playerOne.addPoints() : playerTwo.addPoints();
+            setTimeout(() => {
+                document.querySelector(".player-score").textContent = playerOne.getScore();
+                document.querySelector(".computer-score").textContent = playerTwo.getScore();
+            }, TIMEOUT)
+        }
+    };
 
-    const playGame = (function(){
-        
-        console.log("New Game Starting")
+    const playGame = async function() {
+        console.log("New Game Starting");
         let roundCounter = 1;
-        while (!gameHasWinner()){
-            console.log(`Round ${roundCounter} begins!`)
-            playRound();
+        while (!gameHasWinner()) {
+            console.log(`Round ${roundCounter} begins!`);
+            await playRound();
             roundCounter++;
-            console.log(`Player One: ${playerOne.getScore()}`)
-            console.log(`Player Two: ${playerTwo.getScore()}`)  
+            console.log(`${playerOne.getName()}: ${playerOne.getScore()}`);
+            console.log(`Computer: ${playerTwo.getScore()}`);
         }
         
         let winner = (playerOne.getScore() > playerTwo.getScore()) ? playerOne.getName() : playerTwo.getName();
+        setTimeout(() => {
+            document.querySelector(".round-number").textContent = `${winner} wins!`     
+        }, TIMEOUT);
+        
+    };
 
-        console.log(`${winner} wins!`)
-    })();
+    return {playGame}
 };
+
+
+
