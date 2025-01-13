@@ -19,6 +19,7 @@ const displayController = (function() {
             setTimeout(() => {
                 body.removeChild(body.firstElementChild)
                 document.querySelector(".game-display-container").classList.remove("hidden")
+                document.querySelector(".player-name").textContent = playerName;
             }, 1000);
         } else {
             playerNameInput.setAttribute("placeholder", " enter name")
@@ -54,6 +55,7 @@ const playerMaker = (name, token) => {
     const getName = () => playerName;
     const addPoints = () => points++;
     const getScore = () => points;
+    const resetScore = () => points = 0;
     const getToken = () => playerToken;
     const getTakenSquares = () => takenSquares;
     const resetTakenSquares = () => takenSquares = [];    
@@ -84,7 +86,7 @@ const playerMaker = (name, token) => {
 
 
 
-    return {makeMove, addPoints, getScore, getName, getToken, getComputerChoice, getHumanChoice, getTakenSquares, resetTakenSquares}
+    return {makeMove, addPoints, getScore, getName, getToken, getComputerChoice, getHumanChoice, getTakenSquares, resetTakenSquares, resetScore}
 };
 
 const gameBoard = (function () {
@@ -156,6 +158,23 @@ const gameMaster = function(playerName){
     const playerOne = playerMaker(playerName, "X");
     const playerTwo = playerMaker("Computer", "O");
     let numOfRounds = 0;
+    const resetBtnContainer = document.querySelector('.reset-button-container');
+    const handleReset = () => {
+        numOfRounds = 0;
+        playerOne.resetScore();
+        playerTwo.resetScore();
+        gameBoard.resetBoard();
+        document.querySelector(".player-score").textContent = playerOne.getScore();
+        document.querySelector(".computer-score").textContent = playerTwo.getScore();
+        resetBtnContainer.classList.add("hidden")
+        playGame();
+    }
+
+    const resetGame = () => {
+        resetBtnContainer.classList.remove("hidden");
+        let resetBtn = document.querySelector('.reset-button')
+        resetBtn.addEventListener("click", handleReset)
+    }
 
     const gameHasWinner = () => {
         return (playerOne.getScore() >= maxScore ||playerTwo.getScore() >= maxScore)  
@@ -204,6 +223,7 @@ const gameMaster = function(playerName){
             let availableSquares = gameBoard.getAvailableSquares();
             if (availableSquares.length === 0) {
                 console.log("Tie round");
+                document.querySelector(".round-number").textContent = `Tie round`
                 return;
             }
             gameBoard.printBoard();
@@ -234,6 +254,7 @@ const gameMaster = function(playerName){
             document.querySelector(".round-number").textContent = `${winner} wins!`     
         }, TIMEOUT);
         
+        setTimeout(() => resetGame(), TIMEOUT) 
     };
 
     return {playGame}
